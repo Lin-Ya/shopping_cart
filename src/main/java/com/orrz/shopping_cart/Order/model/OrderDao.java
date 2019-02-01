@@ -1,0 +1,1 @@
+package com.orrz.shopping_cart.Order.model;import org.springframework.stereotype.Repository;import java.util.List;/** * @Author: Lin_Ya * @Date: 2019-02-01-16:18 * @Version: 1.0 * @Description: OrderDao */@Repositorypublic interface OrderDao {    Order getById(long id);    Order save(Order order);    List<Order> findAll();    Boolean delete(long id);}
