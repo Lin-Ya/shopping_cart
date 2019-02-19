@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,15 +40,24 @@ public class ProductSQLiteDao implements ProductDao {
             String name = product.getName();
             String description = product.getDescription();
             double price = product.getPrice();
+            String sql = "";
             // 这里记得要给 text 添加单引号！
-            String sql = "INSERT INTO Product (name,description,price) VALUES ('" + name + "','" + description + "'," + price + ")";
+            if (product.getId() > 0) {
+                sql = "UPDATE Product SET name = '" + name + "', description = '" + description + "', price = " + price + " WHERE id = " + product.getId();
+            } else {
+                sql = "INSERT INTO Product (name,description,price) VALUES ('" + name + "','" + description + "'," + price + ")";
+            }
             // 执行 SQL语句
             statement.executeUpdate(sql);
             // 获取自动生成的主键
             ResultSet rs = statement.getGeneratedKeys();
-            while (rs.next()) {
-                int id = rs.getInt(1);
-                product.setId(id);
+            System.out.println(rs);
+            if (rs.next()) {
+                // 区分新建商品 还是更新商品
+                if (product.getId() < 1) {
+                    int id = rs.getInt(1);
+                    product.setId(id);
+                }
                 return product;
             }
         } catch (SQLException e) {
@@ -80,7 +90,7 @@ public class ProductSQLiteDao implements ProductDao {
     public Product getById(long id) {
         try {
             // 构造SQL查询语句，然后执行
-            String query = "SELECT * FROM `product` WHERE id = " + id;
+            String query = "SELECT * FROM Product WHERE id = " + id;
             System.out.println("开始执行查询： " + query);
             ResultSet rs = statement.executeQuery(query);
 
@@ -105,11 +115,34 @@ public class ProductSQLiteDao implements ProductDao {
 
     @Override
     public List<Product> findAll() {
+        try {
+            String sql = "SELECT * FROM Product";
+            ResultSet rs = statement.executeQuery(sql);
+            // 判断有没有结果
+            if (!rs.next()) {
+                return null;
+            } else {
+                ArrayList<Product> products = new ArrayList<>();
+                // 为什么要do while 呢？
+                // 因为上面已经判断了 rs.next()，此时结果集已经滚动了
+                // 如果使用 while 循环，就会错过第一个结果
+                do {
+                    int id = rs.getInt(1);
+                    Product product = new Product(
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getDouble(4)
+                    );
+                    product.setId(id);
+                    products.add(product);
+                } while (rs.next());
+                return products;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
         return null;
     }
 
-    @Override
-    public Product update(long id, Product product) {
-        return null;
-    }
 }
