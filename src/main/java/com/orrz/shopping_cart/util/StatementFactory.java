@@ -15,7 +15,7 @@ import java.sql.Statement;
  * 本类用于实现连接数据库
  */
 
-@Component("Statement")
+@Component("statement")
 public class StatementFactory implements FactoryBean {
     // TODO: 把数据库地址抽离出来，放到配置文件中
     public static final String DB_PATH = "jdbc:sqlite:resources/sample.db";
